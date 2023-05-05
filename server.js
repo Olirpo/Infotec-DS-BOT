@@ -1,5 +1,6 @@
+
 /////////CONSTANTES/////////////
-const fetchHoursFromUser = require('./fetchesSheets')
+const {fetchUserHours} = require('./utils.js')
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const config = require ("./config.json");
@@ -48,10 +49,10 @@ client.on("message", async (message)=> {
     ////////////////////////COMANDO AGREGADOS/////////////////////////////////////////////
     if(command === "!horas"){
         if(args){
-            devolverMensaje(await fetchHoursFromUser(args), message)
+            devolverMensaje(await fetchUserHours(args), message)
         } else{
             alumnos[author.username]
-            ? devolverMensaje(await fetchHoursFromUser(alumnos[author.username]), message)
+            ? devolverMensaje(await fetchUserHours(alumnos[author.username]), message)
             : devolverMensaje('Profeee', message);
         }
     }
