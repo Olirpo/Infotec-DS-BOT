@@ -12,21 +12,21 @@ const setUserHours = async (user)=>{
 
 const fetchUserHours = async (user)=>{
 
-    const normalizedUserGiven = toNormalForm(user)
-
     const columns = await getSheetInfo('COLUMNS');
 
     const values = columns.data.values;
 
-    const requestedUser = values.filter(e=>{
+    const normalizedUser = toNormalForm(user);
+
+    const requestedUserList = values.filter(e=>{
         if(!e[0]) return false;
 
         normalizedUserIterated = toNormalForm(e[0])
 
-        return normalizedUserIterated.includes(normalizedUserGiven)
+        return normalizedUserIterated.includes(normalizedUser)
     })
 
-    const totalHours = requestedUser.flat().at(-1)
+    const totalHours = requestedUserList.flat().at(-1)
     return totalHours
 }
 
