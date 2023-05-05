@@ -1,6 +1,9 @@
+
 const {google} = require('googleapis');
 
-const hoursFromUser = async (user)=>{
+const fetchHoursFromUser = async (user)=>{
+    console.log(user)
+    const normalizedUserGiven = toNormalForm(user);
     const auth = new google.auth.GoogleAuth({
         keyFile: './credentials.json',
         scopes: 'https://www.googleapis.com/auth/spreadsheets'
@@ -25,10 +28,17 @@ const hoursFromUser = async (user)=>{
 
     const values = await getRows.data.values
     const requestedUser = values.filter(e=>{
-        return e[0]?.includes(user)
+        if(!e[0]) return false;
+
+        normalizedUserIterated = toNormalForm(e[0])
+
+        return normalizedUserIterated.includes(normalizedUserGiven)
     })
 
     const totalHours = requestedUser.flat().at(-1)
-    console.log(totalHours)
+    return totalHours
 }
-hoursFromUser('Cayata')
+function toNormalForm(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+module.exports = fetchHoursFromUser

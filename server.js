@@ -1,9 +1,15 @@
 /////////CONSTANTES/////////////
+const fetchHoursFromUser = require('./fetchesSheets')
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const config = require ("./config.json");
 const log = console.log;
-const prefix = config.prefix
+const prefix = config.prefix;
+const alumnos = {
+    Olirpo: 'Oliverio',
+    NEUBLED: 'Martin',
+    DRAGÓN: 'Larraya',
+}
 /////////FUNCION DE ESTADO DE DISCORD////////////////
 function presencia(){
     client.user.setPresence({
@@ -17,43 +23,39 @@ function presencia(){
 ////////// FUNCION AL ESTAR READY///////////
 client.on("ready", ()=> {
     console.log(`ready on ${client.user.tag}`);
-    presencia();
+    // presencia();
 
     }
     
 );
-
 /////////////////////FUNCION AL RECIBIR MENSAJE/////////////
-client.on("message", (message)=> {
-
-
+client.on("message", async (message)=> {
+    const author = message.author
+    const input = message.content;
+    const command = input.toLocaleLowerCase().split(' ')[0];
+    const args = input.toLocaleLowerCase().split(' ')[1];
 
  //Si el autor es un bot no retornar nada
-    if (message.author.bot){
+    if (author.bot){
     console.log('bot')
     return
     };  
 
 //Si no comienza con el prefijo no retornar nada
-    if (!message.content.startsWith(prefix)){
+    if (!input.startsWith(prefix)){
         return
     };
-
-    const args = message.content;
-    const command = args.toLocaleLowerCase();//selecciono el texto a la derecha del prefijo
-
-
     ////////////////////////COMANDO AGREGADOS/////////////////////////////////////////////
-    if (command =="!sale"){
-
-        var random = Math.floor(Math.random() * ((2+1)-1)+1);
-        var respuesta = (random==1?"si":"no");
-        devolverMensaje(`${respuesta}`,message)
+    if(command === "!horas"){
+        if(args){
+            devolverMensaje(await fetchHoursFromUser(args), message)
+        } else{
+            alumnos[author.username]
+            ? devolverMensaje(await fetchHoursFromUser(alumnos[author.username]), message)
+            : devolverMensaje('Profeee', message);
         }
-    
-    else if (command =="!pedro"){
-        devolverMensaje("jose",message);
     }
+
     else{
         devolverMensaje('Que decis flaco', message)
     }
@@ -64,7 +66,7 @@ client.on("message", (message)=> {
 
     function devolverMensaje(respuesta,message){
         message.channel.send(respuesta);
-        console.log(message.content)
+
     }
 
 client.login(config.token);
