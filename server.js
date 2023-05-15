@@ -12,7 +12,7 @@ const alumnos = {
     DRAGÓN: 'Larraya',
 }
 /////////FUNCION DE ESTADO DE DISCORD////////////////
-function presencia(){
+const presencia = () =>{
     client.user.setPresence({
         status:"online",
         activity:{
@@ -38,10 +38,8 @@ client.on("message", async (message)=> {
 
  //Si el autor es un bot no retornar nada
     if (author.bot){
-    console.log('bot')
     return
     };  
-
 //Si no comienza con el prefijo no retornar nada
     if (!input.startsWith(prefix)){
         return
