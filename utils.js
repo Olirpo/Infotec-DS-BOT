@@ -1,5 +1,6 @@
 const {google} = require('googleapis');
-const spreadsheetId = '1im_YNMczWd2bqw8m0ueOQQ1gFpHwnDK74cRGBPEKeVY';
+//const spreadsheetId = '1im_YNMczWd2bqw8m0ueOQQ1gFpHwnDK74cRGBPEKeVY'; // OLD ID
+const spreadsheetId = '1SgiHV19wxoe18emjUn8xRqwDLFYukp8-V3X0LJFR_oM'; //NEW ID
 const log = console.log;
 const USER_COLUMNS = {
     'Fecha/Alumno': 'A3:A',
@@ -8,24 +9,32 @@ const USER_COLUMNS = {
     'Oliverio Velazquez': 'D3:D',
 }
 const setUserHours = async (user, hours, date = today())=>{
-
-    const {requestedUserColumn, arrOfColumns} = await getUserColumns(user)
+    console.log({user,hours,date})
+    let {requestedUserColumn, arrOfColumns} = await getUserColumns(user)
     
-    const dateColumns = arrOfColumns[0]
-
-    const indexOfNewCell = requestedUserColumn.indexOf('')
-
+    const indexOfNewCell = requestedUserColumn.findIndex(e=> e==='')
+    const userColumnIndex = getIndexColumn(arrOfColumns,requestedUserColumn)
     requestedUserColumn[indexOfNewCell] = hours;
+    arrOfColumns[userColumnIndex] = requestedUserColumn;
 
+    const dateColumns = arrOfColumns[0]
     if(!dateColumns[indexOfNewCell]){
         dateColumns[indexOfNewCell] = date
+        arrOfColumns[0] = dateColumns
     }
-
-    setSheetInfo(COLUMNS, )
-    //const indexOfNewCell = userColumn.indexOf(e=> )
+    let res = null;
+    try{
+        res = await setSheetInfo('COLUMNS', 'InfoTEC!A3:D102', arrOfColumns);
+        console.log(res)
+        }    catch (error){
+            console.error(error)
+        }
+        finally{
+            return res.data.totalUpdatedColumns
+        }
 }
 
-const fetchUserHours = async (user)=>{ 
+const fetchUserHours = async(user)=>{ 
 
 
     const {requestedUserColumn} = await getUserColumns(user)
@@ -50,7 +59,7 @@ const fetchSheets = async()=>{
         auth
     }
 }
-const getSheetInfo = async (format, range='InfoTEC!A3:D103')=>{
+const getSheetInfo = async (format, range='InfoTEC!A3:D102')=>{
     const {sheets, auth} = await fetchSheets();
     return await sheets.spreadsheets.values.get({
         auth,
@@ -59,20 +68,25 @@ const getSheetInfo = async (format, range='InfoTEC!A3:D103')=>{
         majorDimension: format
     })
 }
-const setSheetInfo = async (format, range='InfoTEC!A3:D103')=>{
+const setSheetInfo = async (format, range='InfoTEC!A3:D102',data)=>{
     const {sheets, auth} = await fetchSheets();
 
-    let resource = {
-        spreadsheetId: spreadsheetId,
-        auth: auth,
-        resource: { data: data, valueInputOption: "USER_ENTERED" }
-      };
-    
-
-
-    sheets.spreadsheets.values.batchUpdate({
-        resource
-    })
+    return sheets.spreadsheets.values.batchUpdate({
+        spreadsheetId,
+        resource:{
+            "data": [
+                {
+                    range,
+                    "values": data,
+                    majorDimension: 
+                    format,
+                }
+            ],
+            "valueInputOption": "USER_ENTERED"
+        }
+        
+    }
+    )
 }
 
 const getUserColumns = async (user) => {
@@ -83,25 +97,14 @@ const getUserColumns = async (user) => {
 
     const normalizedUser = toNormalForm(user);
     
-    const requestedUserColumn = arrOfColumns.filter((e) => {
-      if (!e[0]) return false;
-  
-      normalizedUserIterated = toNormalForm(e[0]);
-  
-      return normalizedUserIterated.includes(normalizedUser);
-    }).flat();
+    const requestedUserColumn = arrOfColumns.filter((e, index) => {
+        if (!e[0]) return false;
     
+        normalizedUserIterated = toNormalForm(e[0]);
+        const requestedUserColumn = normalizedUserIterated.includes(normalizedUser)
+        return requestedUserColumn;
+      }).flat();
     return {requestedUserColumn, arrOfColumns}
-    /*// If the requested user column is found, return its data
-    requestedUserColumn.at(-1)
-    const columnIndex = arrOfColumns.indexOf(requestedUserColumn[0]);
-    const userColumnData = sheetData.data.values.map((row) => row[columnIndex]);
-    console.log(userColumnData)
-    return userColumnData;*/
-    
-
-    // If the requested user column is not found, return null
-    
   };
 const toNormalForm = (str) => {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -110,12 +113,25 @@ const today = ()=>{
     const date = new Date();
     const day = date.getDate()
     const month = date.getMonth() + 1;
-    console.log(month)
-    return `${date}/${month}`
+
+    return `${day}/${month}`
 }
+const arraysEqual = (arr1, arr2)=> {
+    // Check if the arrays have the same length
+    if (arr1.length !== arr2.length) {
+      return false;
+    }
+  
+    // Check if every element in arr1 is equal to the corresponding element in arr2
+    return arr1.every((element, index) => {
+      return element === arr2[index];
+    });
+  }
+const getIndexColumn = (arrOfColumns, column)=>{
+    const indexOfColumn = arrOfColumns.findIndex(e => arraysEqual(e,column))
+    return indexOfColumn
+}
+module.exports = {fetchUserHours, setUserHours}
 
-module.exports = {fetchUserHours}
 
 
-today()
-//setUserHours('oli', 11, '11/5')
